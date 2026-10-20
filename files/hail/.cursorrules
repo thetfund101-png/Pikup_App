@@ -1,0 +1,31 @@
+# Hail — AI assistant rules
+
+## Stack
+Expo (SDK 54+) + Expo Router, TypeScript strict, NativeWind v4, Supabase (Postgres/PostGIS, RLS, Realtime), TanStack Query v5, Zustand for local UI state, Mapbox REST APIs, react-native-maps (native) and mapbox-gl (web).
+
+## Structure
+- `app/` contains routes only. Route files are thin: compose feature components and hooks, no business logic.
+- Route groups: `(auth)`, `(passenger)`, `(driver)`, `(admin)`. A user may only be inside the group matching `profiles.role`; the guard lives in `app/_layout.tsx`.
+- `src/features/<feature>/` owns `api.ts` (Supabase calls), `hooks.ts` (React Query + realtime), and `components/`.
+- `src/lib/` holds singletons (supabase, query client, mapbox, location). `src/components/ui/` holds design-system primitives. `src/hooks/` holds cross-feature hooks.
+- Import with the `@/` alias (`@/lib/supabase`). No deep relative `../../..` imports.
+
+## Cross-platform rules
+- Never use DOM elements (`div`, `span`) or `window`/`document` in shared files. Only `*.web.tsx` / `*.web.ts` may touch the DOM.
+- Use `View`, `Text`, `Pressable`, `ScrollView`, `TextInput` from `react-native`.
+- Platform splits: prefer file extensions (`Foo.tsx` = native default, `Foo.web.tsx`). Use `Platform.OS` only for small inline differences. Both variants must satisfy the same props type.
+- Style with NativeWind `className`. Colors/fonts come from `tailwind.config.js`; don't hardcode hex in components (use `theme.ts` when a prop needs a raw color).
+
+## Data rules
+- Never put the `service_role` key in the app. Only the anon key ships to clients.
+- Every table has RLS. Add a policy in the same migration as the table.
+- Ride state changes, fare calculation, and driver assignment go through SQL functions (`request_ride`, `accept_ride`, `set_ride_status`). Clients don't UPDATE `rides` directly.
+- Regenerate types after every migration: `npm run db:types`.
+- Realtime: subscribe in `useEffect`, always `supabase.removeChannel(channel)` in cleanup, and scope with a `filter` whenever possible.
+- Query keys come from per-feature key factories. Mutations update the cache with `setQueryData` or `invalidateQueries`.
+
+## Code quality
+- No `any`. Narrow `unknown` instead. Handle every Supabase `{ error }`.
+- Throttle anything high-frequency (location writes are rate-limited in `useDriverLocation`).
+- User-facing copy: sentence case, active voice, errors say what happened and what to do next.
+- Run `npm run typecheck` before finishing a task.

@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Cross-platform component classes. Only use utilities that NativeWind supports on both web and native. */
+@layer components {
+  .screen {
+    @apply flex-1 bg-paper;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-white p-4;
+  }
+  .title {
+    @apply font-display text-2xl text-asphalt;
+  }
+  .subtitle {
+    @apply font-body text-base text-asphalt-mute;
+  }
+  .label {
+    @apply font-body-medium text-sm text-asphalt-soft;
+  }
+  .chip {
+    @apply rounded-full border border-line bg-white px-3 py-1.5;
+  }
+  .chip-active {
+    @apply rounded-full border border-asphalt bg-asphalt px-3 py-1.5;
+  }
+}
